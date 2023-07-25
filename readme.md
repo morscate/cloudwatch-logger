@@ -1,7 +1,7 @@
 # Cloudwatch logger (inc. embedded metrics)
-This package allows you to log to AWS Cloudwatch. It also allows you to include to log metrics with AWS embedded metric format (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Embedded_Metric_Format_Specification.html).
-
 This is an ALPHA version of the Event flow package. Do not use this is production!
+
+This package allows you to log to AWS Cloudwatch. It also allows you to include to log metrics with AWS embedded metric format (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Embedded_Metric_Format_Specification.html).
 
 ## Requirements
 
