@@ -92,16 +92,4 @@ class CloudwatchClient
             ],
         ]);
     }
-
-//    private function client(): CloudWatchLogsClient
-//    {
-//        return new CloudWatchLogsClient([
-//            'region' => config('services.cloudwatch.aws_region', 'us-east-1'),
-//            'version' => config('services.cloudwatch.version', 'latest'),
-//            'credentials' => [
-//                'key' => config('services.cloudwatch.aws_access_key'),
-//                'secret' => config('services.cloudwatch.aws_access_secret'),
-//            ],
-//        ]);
-//    }
 }
