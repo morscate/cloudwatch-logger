@@ -14,9 +14,9 @@ class CloudwatchClient
 
     private string $groupName;
 
-    public function __construct()
+    public function __construct(string $groupName = null)
     {
-        $this->groupName = config('cloudwatch.log_group_name');
+        $this->groupName = $groupName ?? config('cloudwatch.log_group_name');
 
         $this->client = $this->client();
     }
@@ -72,11 +72,11 @@ class CloudwatchClient
         );
 
         // create stream if not created
-        if (!in_array($streamName, $existingStreamsNames, true)) {
+        if (! in_array($streamName, $existingStreamsNames, true)) {
             $this->client
                 ->createLogStream([
                     'logGroupName' => $this->groupName,
-                    'logStreamName' => $streamName
+                    'logStreamName' => $streamName,
                 ]);
         }
     }

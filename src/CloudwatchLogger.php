@@ -2,28 +2,29 @@
 
 namespace Morscate\CloudwatchLogger;
 
-use Aws\CloudWatchLogs\CloudWatchLogsClient;
-use Aws\CloudWatchLogs\Exception\CloudWatchLogsException;
 use Aws\Result;
-use Illuminate\Support\Str;
 
 class CloudwatchLogger
 {
-    private CloudwatchClient $client;
-
     private string $retention = '14';
+
+    private ?string $groupName = null;
 
     private string $streamName;
 
     private string $namespace;
 
-    private string $message = '';
+    private mixed $message = '';
+
+    private mixed $metadata = null;
 
     private array $metrics = [];
 
-    public function __construct()
+    public function group(string $name): self
     {
-        $this->client = $this->client();
+        $this->groupName = $name;
+
+        return $this;
     }
 
     public function stream(string $name): self
@@ -40,9 +41,16 @@ class CloudwatchLogger
         return $this;
     }
 
-    public function message($message): self
+    public function message(mixed $message): self
     {
         $this->message = $message;
+
+        return $this;
+    }
+
+    public function metadata(mixed $metadata): self
+    {
+        $this->metadata = $metadata;
 
         return $this;
     }
@@ -67,14 +75,20 @@ class CloudwatchLogger
             $this->formatEntry(),
         ];
 
-        return $this->client->putLogs($this->streamName, $entries);
+        $client = new CloudwatchClient($this->groupName);
+
+        return $client->putLogs($this->streamName, $entries);
     }
 
     private function formatEntry(): array
     {
         $message['message'] = $this->message;
 
-        if (!empty($this->metrics)) {
+        if ($this->metadata) {
+            $message['metadata'] = $this->metadata;
+        }
+
+        if (! empty($this->metrics)) {
             $metrics = [];
             foreach ($this->metrics as $metric) {
                 $metricName = $metric['Name'];
@@ -92,10 +106,10 @@ class CloudwatchLogger
                 'Timestamp' => time(),
                 'CloudWatchMetrics' => [
                     'Metrics' => $metrics,
-                ]
+                ],
             ];
 
-            if (!empty($this->namespace)) {
+            if (! empty($this->namespace)) {
                 $message['_aws']['CloudWatchMetrics']['Namespace'] = $this->namespace;
             }
         }
