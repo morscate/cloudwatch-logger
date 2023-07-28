@@ -53,7 +53,7 @@ class CloudwatchLogger
         return $this;
     }
 
-    public function metric(
+    public function addMetric(
         string $name,
         mixed $value,
         string $unit = 'Milliseconds',
@@ -67,7 +67,7 @@ class CloudwatchLogger
         return $this;
     }
 
-    public function dimension(
+    public function addDimension(
         string $name,
         mixed $value,
     ): self {
@@ -90,6 +90,16 @@ class CloudwatchLogger
             'CloudWatchMetrics' => [],
         ];
 
+        if (! empty($this->namespace)) {
+            $message['_aws']['CloudWatchMetrics']['Namespace'] = $this->namespace;
+        }
+
+        if (! empty($this->dimensions)) {
+            $message['_aws']['CloudWatchMetrics']['Dimensions'] = $this->formatDimensionSets();
+
+            $message = array_merge($message, $this->dimensions);
+        }
+
         if (! empty($this->metrics)) {
             $metrics = [];
             foreach ($this->metrics as $metric) {
@@ -105,16 +115,6 @@ class CloudwatchLogger
             }
 
             $message['_aws']['CloudWatchMetrics']['Metrics'] = $metrics;
-        }
-
-        if (! empty($this->dimensions)) {
-            $message['_aws']['CloudWatchMetrics']['Dimensions'] = $this->formatDimensionSets();
-
-            $message = array_merge($message, $this->dimensions);
-        }
-
-        if (! empty($this->namespace)) {
-            $message['_aws']['CloudWatchMetrics']['Namespace'] = $this->namespace;
         }
 
         $entry['message'] = json_encode($message);
