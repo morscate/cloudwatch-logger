@@ -6,6 +6,8 @@ return [
     'aws_access_secret' => env('AWS_SECRET_ACCESS_KEY'),
 
     'aws_region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+    
+    'environment' => env('CLOUDWATCH_ENVIRONMENT', 'local'),
 
     'log_group_name' => env('CLOUDWATCH_LOG_GROUP_NAME', ''),
 

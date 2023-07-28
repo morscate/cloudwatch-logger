@@ -16,9 +16,14 @@ class CloudwatchLogger
 
     private mixed $message = '';
 
-    private mixed $metadata = null;
-
     private array $metrics = [];
+
+    private array $dimensions = [];
+
+    public function __construct()
+    {
+        $this->dimensions['Environment'] = config('cloudwatch.environment', 'local');
+    }
 
     public function group(string $name): self
     {
@@ -48,13 +53,6 @@ class CloudwatchLogger
         return $this;
     }
 
-    public function metadata(mixed $metadata): self
-    {
-        $this->metadata = $metadata;
-
-        return $this;
-    }
-
     public function metric(
         string $name,
         mixed $value,
@@ -69,24 +67,28 @@ class CloudwatchLogger
         return $this;
     }
 
-    public function send(): Result
+    public function dimension(
+        string $name,
+        mixed $value,
+    ): self {
+        $this->dimensions[$name] = $value;
+
+        return $this;
+    }
+
+    private function formatDimensionSets(): array
     {
-        $entries = [
-            $this->formatEntry(),
-        ];
-
-        $client = new CloudwatchClient($this->groupName);
-
-        return $client->putLogs($this->streamName, $entries);
+        return array_keys($this->dimensions);
     }
 
     private function formatEntry(): array
     {
         $message['message'] = $this->message;
 
-        if ($this->metadata) {
-            $message['metadata'] = $this->metadata;
-        }
+        $message['_aws'] = [
+            'Timestamp' => time(),
+            'CloudWatchMetrics' => [],
+        ];
 
         if (! empty($this->metrics)) {
             $metrics = [];
@@ -102,21 +104,33 @@ class CloudwatchLogger
                 $message[$metricName] = $metricValue;
             }
 
-            $message['_aws'] = [
-                'Timestamp' => time(),
-                'CloudWatchMetrics' => [
-                    'Metrics' => $metrics,
-                ],
-            ];
+            $message['_aws']['CloudWatchMetrics']['Metrics'] = $metrics;
+        }
 
-            if (! empty($this->namespace)) {
-                $message['_aws']['CloudWatchMetrics']['Namespace'] = $this->namespace;
-            }
+        if (! empty($this->dimensions)) {
+            $message['_aws']['CloudWatchMetrics']['Dimensions'] = $this->formatDimensionSets();
+
+            $message = array_merge($message, $this->dimensions);
+        }
+
+        if (! empty($this->namespace)) {
+            $message['_aws']['CloudWatchMetrics']['Namespace'] = $this->namespace;
         }
 
         $entry['message'] = json_encode($message);
         $entry['timestamp'] = floor(microtime(true) * 1000);
 
         return $entry;
+    }
+
+    public function send(): Result
+    {
+        $entries = [
+            $this->formatEntry(),
+        ];
+
+        $client = new CloudwatchClient($this->groupName);
+
+        return $client->putLogs($this->streamName, $entries);
     }
 }
