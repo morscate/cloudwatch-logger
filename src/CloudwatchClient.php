@@ -40,7 +40,7 @@ class CloudwatchClient
 
         try {
             $response = $this->client->putLogEvents($data);
-        } catch (CloudWatchLogsException $e) {
+        } catch (CloudWatchLogsException $exception) {
             $this->createLogStream($streamName);
             $response = $this->client->putLogEvents($data);
         }
@@ -73,11 +73,14 @@ class CloudwatchClient
 
         // create stream if not created
         if (! in_array($streamName, $existingStreamsNames, true)) {
-            $this->client
-                ->createLogStream([
-                    'logGroupName' => $this->groupName,
-                    'logStreamName' => $streamName,
-                ]);
+            try {
+                $this->client->createLogStream([
+                        'logGroupName' => $this->groupName,
+                        'logStreamName' => $streamName,
+                    ]);
+            } catch (CloudWatchLogsException $exception) {
+                // mean that the log stream already exists, so we can just proceed
+            }
         }
     }
 
