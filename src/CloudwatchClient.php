@@ -5,6 +5,7 @@ namespace Morscate\CloudwatchLogger;
 use Aws\CloudWatchLogs\CloudWatchLogsClient;
 use Aws\CloudWatchLogs\Exception\CloudWatchLogsException;
 use Aws\Result;
+use Illuminate\Support\Facades\Log;
 
 class CloudwatchClient
 {
