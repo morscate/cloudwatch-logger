@@ -45,6 +45,9 @@ class CloudwatchClient
             if ($exception->getAwsErrorCode() === 'ResourceNotFoundException') {
                 $this->createLogStream($streamName);
                 $response = $this->putLogs($streamName, $entries);
+
+                return $response;
+
             }
 
             Log::error($exception->getMessage(), $exception->toArray());
