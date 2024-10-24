@@ -106,7 +106,7 @@ class CloudwatchLogger
                 $metricName = $metric['Name'];
                 $metricValue = $metric[$metricName];
 
-                $metrics = [
+                $metrics[] = [
                     'Name' => $metricName,
                     'Unit' => $metric['Unit'],
                 ];
